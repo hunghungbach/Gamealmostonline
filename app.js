@@ -305,7 +305,10 @@ const joinOpenButton = document.querySelector('#joinOpen');
 if (joinOpenButton) joinOpenButton.addEventListener('click', () => openModal('register'));
 document.querySelector('#modalClose').addEventListener('click', closeModal);
 backdrop.addEventListener('click', event => { if (event.target === backdrop) closeModal(); });
-document.querySelector('#switchAuth').addEventListener('click', () => setAuthMode(authMode === 'login' ? 'register' : 'login'));
+document.querySelector('#switchAuth').addEventListener('click', event => {
+  event.preventDefault();
+  setAuthMode(authMode === 'login' ? 'register' : 'login');
+});
 
 function setAuthMode(mode) {
   authMode = mode;
