@@ -42,7 +42,7 @@ const loginAttempts = new Map(); // chống brute-force
 function getSmtpStatus(env = process.env) {
   const host = String(env.SMTP_HOST || '').trim();
   const user = String(env.SMTP_USER || '').trim();
-  const pass = String(env.SMTP_PASS || '').trim();
+  const pass = String(env.SMTP_PASS || '').replace(/\s+/g, '');
 
   if (!host) {
     return { enabled: false, host: null, user: null, message: 'SMTP_HOST chưa được cấu hình. Cần thêm SMTP_HOST=smtp.gmail.com vào .env.' };
@@ -103,7 +103,7 @@ const mailer = smtpStatus.enabled ? nodemailer.createTransport({
   host: smtpStatus.host,
   port: Number(process.env.SMTP_PORT || 465),
   secure: String(process.env.SMTP_SECURE || 'true').toLowerCase() === 'true',
-  auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+  auth: { user: smtpStatus.user, pass: String(process.env.SMTP_PASS || '').replace(/\s+/g, '') }
 }) : null;
 
 if (!smtpStatus.enabled) {
@@ -112,7 +112,7 @@ if (!smtpStatus.enabled) {
   console.log('[mail] SMTP ready. Mã xác nhận sẽ được gửi qua email thật.');
   mailer.verify()
     .then(() => console.log('[mail] SMTP connection verified.'))
-    .catch(error => console.error('[mail] SMTP connection failed:', error.message));
+    .catch(error => console.error('[mail] SMTP connection failed:', error.code || 'UNKNOWN', error.message));
 }
 
 /* ===================== HELPERS ===================== */
@@ -347,7 +347,7 @@ app.post('/api/auth/register', async (request, response) => {
     pending.set(email, record);
     response.json({ message: 'Mã xác nhận đã được gửi.' });
   } catch (e) {
-    console.error('[mail] Không thể gửi OTP đăng ký:', e.message);
+    console.error('[mail] Không thể gửi OTP đăng ký:', e.code || 'UNKNOWN', e.message);
     response.status(503).json({ message: 'Không thể gửi email xác nhận. Kiểm tra cấu hình SMTP rồi thử lại.' });
   }
 });
