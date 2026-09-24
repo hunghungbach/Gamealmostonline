@@ -93,6 +93,7 @@ app.get('/api/health', (request, response) => {
   response.json({
     ok: true,
     database: Boolean(dbPool),
+    smtp: smtpStatus.enabled,
     environment: process.env.NODE_ENV || 'development'
   });
 });
@@ -109,6 +110,9 @@ if (!smtpStatus.enabled) {
   console.warn('[mail] SMTP chưa sẵn sàng. Email OTP sẽ bị từ chối cho đến khi cấu hình Gmail thật + App Password.');
 } else {
   console.log('[mail] SMTP ready. Mã xác nhận sẽ được gửi qua email thật.');
+  mailer.verify()
+    .then(() => console.log('[mail] SMTP connection verified.'))
+    .catch(error => console.error('[mail] SMTP connection failed:', error.message));
 }
 
 /* ===================== HELPERS ===================== */
