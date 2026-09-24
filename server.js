@@ -34,6 +34,7 @@ const dbPool = databaseUrl ? new Pool({
   connectionString: databaseUrl,
   ssl: String(process.env.DATABASE_SSL || '').toLowerCase() === 'true' ? { rejectUnauthorized: false } : undefined
 }) : null;
+const brevoApiKey = String(process.env.BREVO_API_KEY || '').trim();
 const pending = new Map();       // đăng ký
 const forgot = new Map();        // quên mật khẩu
 const sessions = new Map();      // session đăng nhập
@@ -94,6 +95,7 @@ app.get('/api/health', (request, response) => {
     ok: true,
     database: Boolean(dbPool),
     smtp: smtpStatus.enabled,
+    emailProvider: brevoApiKey ? 'brevo' : smtpStatus.enabled ? 'smtp' : 'none',
     environment: process.env.NODE_ENV || 'development'
   });
 });
@@ -307,9 +309,35 @@ function requireAdmin(request, response, next) {
 }
 
 async function sendOtp(email, code, subject = 'Mã xác nhận Arcade Hub') {
+  const fromEmail = String(process.env.SMTP_USER || '').trim();
+  const fromName = 'Arcade Hub';
+
+  if (brevoApiKey) {
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'api-key': brevoApiKey,
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        sender: { name: fromName, email: fromEmail },
+        to: [{ email }],
+        subject,
+        textContent: `Mã của bạn là ${code}. Hiệu lực 10 phút.`,
+        htmlContent: `<h2>Arcade Hub</h2><p>Mã của bạn:</p><h1>${code}</h1><p>Hiệu lực 10 phút.</p>`
+      })
+    });
+    if (!response.ok) {
+      const details = await response.text();
+      throw new Error(`Brevo ${response.status}: ${details.slice(0, 300)}`);
+    }
+    return true;
+  }
+
   if (!mailer) throw new Error('SMTP chưa được cấu hình.');
   await mailer.sendMail({
-    from: process.env.MAIL_FROM || process.env.SMTP_USER,
+    from: process.env.MAIL_FROM || fromEmail,
     to: email, subject,
     text: `Mã của bạn là ${code}. Hiệu lực 10 phút.`,
     html: `<h2>Arcade Hub</h2><p>Mã của bạn:</p><h1>${code}</h1><p>Hiệu lực 10 phút.</p>`
