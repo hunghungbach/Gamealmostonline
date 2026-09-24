@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arcade Hub | Quản trị</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#171717;--cream:#fffdf9;--orange:#ff5c35;--lime:#d9f36a;--muted:#77736c;--line:#ded9d0}
+*{box-sizing:border-box}
+body{margin:0;background:#f5f2ed;color:var(--ink);font-family:'DM Sans',sans-serif;min-height:100vh}
+.page{max-width:1200px;margin:auto;padding:30px 5% 60px}
+.nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:40px}
+.brand{display:flex;align-items:center;gap:10px;font:700 15px 'Space Grotesk';letter-spacing:.04em;text-decoration:none;color:inherit}
+.brand-mark{display:grid;place-items:center;background:var(--ink);color:var(--lime);width:29px;height:29px;border-radius:7px;transform:rotate(-8deg);font-size:19px}
+.brand-accent{color:var(--orange)}
+.badge-admin{background:var(--orange);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.05em}
+.back{color:var(--muted);font-size:12px;text-decoration:none;margin-left:16px}
+.eyebrow{font-size:10px;letter-spacing:.2em;font-weight:700;color:var(--orange);margin:0 0 14px}
+h1{font:700 clamp(38px,6vw,58px)/.95 'Space Grotesk';letter-spacing:-.05em;margin:0 0 30px}
+h1 em{color:var(--orange);font-style:normal}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:30px}
+.stat{background:var(--cream);border:1px solid var(--line);border-radius:8px;padding:20px}
+.stat small{display:block;color:var(--muted);font-size:10px;letter-spacing:.1em;font-weight:700;margin-bottom:8px}
+.stat strong{font:700 32px 'Space Grotesk';color:var(--orange)}
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:12px}
+.toolbar h2{font:700 20px 'Space Grotesk';margin:0}
+.toolbar input{padding:10px 14px;border:1px solid var(--line);border-radius:5px;font:inherit;font-size:13px;width:240px;background:#fff}
+table{width:100%;background:var(--cream);border:1px solid var(--line);border-radius:8px;border-collapse:collapse;overflow:hidden}
+th,td{padding:14px 16px;text-align:left;font-size:12px;border-bottom:1px solid var(--line)}
+th{background:#f0ece5;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+tr:last-child td{border-bottom:0}
+tr:hover td{background:#faf8f3}
+.role-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;background:#eee}
+.role-badge.admin{background:var(--orange);color:#fff}
+.status-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700}
+.status-badge.active{background:#d9f36a;color:var(--ink)}
+.status-badge.locked{background:#f5c2bd;color:#7a1d15}
+.actions{display:flex;gap:6px}
+.actions button{padding:6px 10px;font-size:10px;font-weight:700;border:0;border-radius:4px;cursor:pointer}
+.btn-role{background:#e8e3d8;color:var(--ink)}
+.btn-lock{background:#fff3cd;color:#7a5a00}
+.btn-unlock{background:#d9f36a;color:var(--ink)}
+.btn-del{background:#f5c2bd;color:#7a1d15}
+.empty{text-align:center;padding:60px;color:var(--muted);font-size:13px}
+.toast{position:fixed;right:24px;bottom:24px;background:var(--ink);color:#fff;padding:14px 18px;font-size:12px;border-left:4px solid var(--lime);transform:translateY(120px);transition:.3s;z-index:20}
+.toast.show{transform:translateY(0)}
+.hidden{display:none!important}
+.lock-dialog{position:fixed;inset:0;z-index:30;background:#17171788;display:grid;place-items:center;padding:20px}
+.lock-dialog-card{width:min(430px,100%);background:var(--cream);border:1px solid var(--line);border-radius:8px;padding:26px;box-shadow:0 18px 50px #0003}
+.lock-dialog-card h2{font:700 24px 'Space Grotesk';margin:0 0 8px}
+.lock-dialog-card p{color:var(--muted);font-size:12px;line-height:1.5;margin:0 0 18px}
+.lock-dialog-card textarea{display:block;width:100%;min-height:105px;resize:vertical;padding:11px 12px;border:1px solid var(--line);border-radius:5px;background:#fff;font:12px 'DM Sans';outline:0}
+.lock-dialog-card textarea:focus{border-color:var(--orange);box-shadow:0 0 0 3px #ff5c3522}
+.lock-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.lock-dialog-actions button{padding:9px 14px;border:0;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer}
+.lock-dialog-cancel{background:#eee8df;color:var(--ink)}
+.lock-dialog-submit{background:var(--orange);color:#fff}
+.you-tag{background:var(--ink);color:var(--lime);font-size:9px;padding:2px 6px;border-radius:3px;margin-left:6px}
+.tabs{display:flex;gap:8px;margin-bottom:24px;border-bottom:1px solid var(--line);padding-bottom:0}
+.tab{background:transparent;border:0;padding:12px 18px;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px;border-radius:0}
+.tab.active{color:var(--ink);border-color:var(--orange)}
+.tab-badge{display:inline-block;background:var(--orange);color:#fff;font-size:9px;padding:2px 6px;border-radius:10px;margin-left:4px;min-width:18px}
+.tab-badge:empty,.tab-badge[data-count="0"]{display:none}
+</style>
+</head>
+<body>
+<div class="page">
+  <nav class="nav">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <a class="brand" href="index.html"><span class="brand-mark">A</span><span>ARCADE<span class="brand-accent">HUB</span></span></a>
+      <span class="badge-admin">ADMIN PANEL</span>
+      <a class="back" href="index.html">← Trang chủ</a>
+    </div>
+  </nav>
+
+  <p class="eyebrow">QUẢN TRỊ HỆ THỐNG</p>
+  <h1>Quản lý<br><em>người dùng.</em></h1>
+
+  <div class="tabs">
+  <button class="tab active" data-tab="users">👥 Người dùng</button>
+  <button class="tab" data-tab="appeals">⚖️ Khiếu nại <span class="tab-badge" id="appealBadge">0</span></button>
+</div>
+
+  <div class="stats">
+    <div class="stat"><small>TỔNG USER</small><strong id="statTotal">-</strong></div>
+    <div class="stat"><small>MỚI HÔM NAY</small><strong id="statNew">-</strong></div>
+    <div class="stat"><small>ĐANG BỊ KHÓA</small><strong id="statLocked">-</strong></div>
+    <div class="stat"><small>ADMIN</small><strong id="statAdmins">-</strong></div>
+  </div>
+
+  <div class="toolbar">
+    <h2>👥 Danh sách người dùng</h2>
+    <input id="searchInput" type="search" placeholder="🔍 Tìm theo tên hoặc email...">
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Người dùng</th>
+        <th>Vai trò</th>
+        <th>Trạng thái</th>
+        <th>Ngày tạo</th>
+        <th>Đăng nhập cuối</th>
+        <th>Hành động</th>
+      </tr>
+    </thead>
+    <tbody id="userTable">
+      <tr><td colspan="6" class="empty">Đang tải...</td></tr>
+    </tbody>
+  </table>
+
+<div id="tab-appeals" class="tab-content hidden">
+  <h2 style="font:700 20px 'Space Grotesk';margin:0 0 16px;">⚖️ Hàng đợi khiếu nại</h2>
+  <div id="appealList"></div>
+</div>
+</div>
+<div class="lock-dialog hidden" id="lockDialog" role="dialog" aria-modal="true" aria-labelledby="lockDialogTitle">
+  <form class="lock-dialog-card" id="lockForm">
+    <h2 id="lockDialogTitle">Khóa tài khoản</h2>
+    <p id="lockDialogDescription">Nhập rõ lý do để người dùng biết vi phạm nào khiến tài khoản bị khóa.</p>
+    <textarea id="lockReasonInput" maxlength="500" minlength="10" required placeholder="Ví dụ: Sử dụng công cụ gian lận trong game Reflex Challenge..."></textarea>
+    <div class="lock-dialog-actions">
+      <button class="lock-dialog-cancel" id="lockDialogCancel" type="button">Hủy</button>
+      <button class="lock-dialog-submit" type="submit">Xác nhận khóa</button>
+    </div>
+  </form>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const API_BASE = location.protocol === 'file:' ? 'http://localhost:3000' : '';
+const token = localStorage.getItem('arcadeToken');
+const localUser = JSON.parse(localStorage.getItem('arcadeUser') || 'null');
+
+if (!token || !localUser || localUser.role !== 'admin') {
+  alert('Bạn không có quyền truy cập.');
+  location.href = 'index.html';
+}
+
+function showToast(msg) {
+  const t = document.querySelector('#toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(window._tt);
+  window._tt = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+async function api(path, opts = {}) {
+  const r = await fetch(`${API_BASE}${path}`, {
+    ...opts,
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, ...(opts.headers || {}) }
+  });
+  const d = await r.json();
+  if (r.status === 401) {
+    localStorage.removeItem('arcadeToken');
+    localStorage.removeItem('arcadeUser');
+    alert('Phiên admin đã hết hạn. Vui lòng đăng nhập lại.');
+    location.href = 'index.html';
+    throw new Error('Phiên admin đã hết hạn.');
+  }
+  if (!r.ok) throw new Error(d.message || 'Lỗi API.');
+  return d;
+}
+
+/* ============ STATS ============ */
+async function loadStats() {
+  try {
+    const d = await api('/api/admin/stats');
+    document.querySelector('#statTotal').textContent = d.total;
+    document.querySelector('#statNew').textContent = d.newToday;
+    document.querySelector('#statLocked').textContent = d.locked;
+    document.querySelector('#statAdmins').textContent = d.admins;
+  } catch (e) { showToast(e.message); }
+}
+
+/* ============ USERS ============ */
+async function loadUsers(q = '') {
+  const tbody = document.querySelector('#userTable');
+  tbody.innerHTML = '<tr><td colspan="6" class="empty">Đang tải...</td></tr>';
+  try {
+    const d = await api(`/api/admin/users?q=${encodeURIComponent(q)}`);
+    if (!d.users.length) { tbody.innerHTML = '<tr><td colspan="6" class="empty">Không có user.</td></tr>'; return; }
+    tbody.innerHTML = d.users.map(u => {
+      const isMe = u.id === localUser.id;
+      return `<tr>
+        <td><strong>${u.name}</strong>${isMe ? '<span class="you-tag">BẠN</span>' : ''}<div style="color:var(--muted);font-size:11px;margin-top:3px;">${u.email}</div></td>
+        <td><span class="role-badge ${u.role === 'admin' ? 'admin' : ''}">${u.role}</span></td>
+        <td>
+  <span class="status-badge ${u.locked ? 'locked' : 'active'}">${u.locked ? '🔒 Khóa' : '✅ Hoạt động'}</span>
+  ${u.locked && u.lockReason ? `<div style="font-size:10px;color:var(--muted);margin-top:4px;max-width:180px;">${u.lockReason}</div>` : ''}
+</td>
+        <td>${new Date(u.createdAt).toLocaleDateString('vi-VN')}</td>
+        <td>${u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString('vi-VN') : '—'}</td>
+        <td><div class="actions">
+          ${!isMe ? `<button class="btn-role" onclick="changeRole('${u.id}', '${u.role === 'admin' ? 'user' : 'admin'}')">${u.role === 'admin' ? '↓ User' : '↑ Admin'}</button>` : ''}
+          ${!isMe ? `<button class="${u.locked ? 'btn-unlock' : 'btn-lock'}" data-lock-id="${u.id}" data-lock-state="${!u.locked}">${u.locked ? 'Mở' : 'Khóa'}</button>` : ''}
+          ${!isMe ? `<button class="btn-del" onclick="deleteUser('${u.id}', '${u.name.replace(/'/g, '')}')">Xóa</button>` : ''}
+          ${isMe ? '<span style="color:var(--muted);font-size:11px;">(chính bạn)</span>' : ''}
+        </div></td>
+      </tr>`;
+    }).join('');
+  } catch (e) { tbody.innerHTML = `<tr><td colspan="6" class="empty">${e.message}</td></tr>`; }
+}
+
+document.querySelector('#userTable').addEventListener('click', event => {
+  const button = event.target.closest('[data-lock-id]');
+  if (!button) return;
+  const userName = button.closest('tr').querySelector('strong')?.textContent || 'người dùng';
+  if (button.dataset.lockState === 'true') openLockDialog(button.dataset.lockId, userName);
+  else toggleLock(button.dataset.lockId, false, userName);
+});
+
+window.changeRole = async (id, role) => {
+  try { await api(`/api/admin/users/${id}/role`, { method: 'PUT', body: JSON.stringify({ role }) });
+    showToast('Đã đổi vai trò.'); loadStats(); loadUsers(document.querySelector('#searchInput').value);
+  } catch (e) { showToast(e.message); }
+};
+window.toggleLock = async (id, locked, userName) => {
+  if (!locked) {
+    if (!confirm(`Mở khóa tài khoản "${userName}"?`)) return;
+    try {
+      await api(`/api/admin/users/${id}/lock`, { method: 'PUT', body: JSON.stringify({ locked: false }) });
+      showToast('Đã mở khóa.');
+      loadStats(); loadUsers(document.querySelector('#searchInput').value);
+    } catch (e) { showToast(e.message); }
+  }
+};
+let lockTarget = null;
+const lockDialog = document.querySelector('#lockDialog');
+const lockForm = document.querySelector('#lockForm');
+const lockReasonInput = document.querySelector('#lockReasonInput');
+const closeLockDialog = () => { lockDialog.classList.add('hidden'); lockTarget = null; lockReasonInput.value = ''; };
+function openLockDialog(id, userName) {
+  lockTarget = { id, userName };
+  document.querySelector('#lockDialogTitle').textContent = `Khóa tài khoản: ${userName}`;
+  lockDialog.classList.remove('hidden');
+  lockReasonInput.focus();
+}
+document.querySelector('#lockDialogCancel').addEventListener('click', closeLockDialog);
+lockDialog.addEventListener('click', event => { if (event.target === lockDialog) closeLockDialog(); });
+lockForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  const reason = lockReasonInput.value.trim();
+  if (!lockTarget || reason.length < 10) {
+    showToast('Vui lòng nhập lý do rõ ràng, ít nhất 10 ký tự.');
+    return;
+  }
+  const submitButton = lockForm.querySelector('.lock-dialog-submit');
+  submitButton.disabled = true;
+  try {
+    await api(`/api/admin/users/${lockTarget.id}/lock`, { method: 'PUT', body: JSON.stringify({ locked: true, reason }) });
+    closeLockDialog();
+    showToast('Đã khóa tài khoản.');
+    await Promise.all([loadStats(), loadUsers(document.querySelector('#searchInput').value)]);
+  } catch (e) {
+    showToast(e.message);
+  } finally {
+    submitButton.disabled = false;
+  }
+});
+window.deleteUser = async (id, name) => {
+  if (!confirm(`Xóa user "${name}"?`)) return;
+  try { await api(`/api/admin/users/${id}`, { method: 'DELETE' });
+    showToast('Đã xóa.'); loadStats(); loadUsers(document.querySelector('#searchInput').value);
+  } catch (e) { showToast(e.message); }
+};
+
+/* ============ REPORTS ============ */
+const STATUS_LABEL = { pending: 'Chờ xử lý', verified: 'Đã xác thực', dismissed: 'Bỏ qua' };
+
+/* ============ APPEALS ============ */
+async function loadAppeals() {
+  const box = document.querySelector('#appealList');
+  box.innerHTML = '<p style="color:var(--muted);font-size:12px;">Đang tải...</p>';
+  try {
+    const d = await api('/api/admin/appeals');
+    const pending = d.appeals.filter(a => a.status === 'pending');
+    document.querySelector('#appealBadge').textContent = pending.length;
+
+    if (!d.appeals.length) { box.innerHTML = '<p style="color:var(--muted);font-size:12px;">Không có khiếu nại nào.</p>'; return; }
+
+    box.innerHTML = d.appeals.map(a => `
+      <div class="appeal-item" style="margin-bottom:16px;background:var(--cream);border:1px solid var(--line);border-left:4px solid ${a.status === 'pending' ? '#ffb700' : a.status === 'accepted' ? '#4caf50' : '#f44336'};">
+        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px;">
+          <span class="status-badge ${a.status}">${a.status === 'pending' ? 'Chờ xử lý' : a.status === 'accepted' ? 'Đã chấp nhận' : 'Đã từ chối'}</span>
+          <span style="color:var(--muted);font-size:10px;">${new Date(a.createdAt).toLocaleString('vi-VN')}</span>
+        </div>
+        <strong>${a.userName} (${a.userEmail})</strong>
+        <div style="margin:8px 0;font-size:12px;line-height:1.6;">
+          <b>Lý do:</b> ${a.reason}
+          ${a.evidence ? `<br><b>Bằng chứng:</b> <a href="${a.evidence}" target="_blank" style="color:var(--orange);">${a.evidence}</a>` : ''}
+        </div>
+        ${a.status === 'pending' ? `
+          <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+            <input id="anote-${a.id}" placeholder="Ghi chú admin (tùy chọn)" style="flex:1;min-width:200px;padding:8px 12px;border:1px solid var(--line);border-radius:5px;font-size:12px;">
+            <button onclick="reviewAppeal('${a.id}', 'accepted')" style="background:#d9f36a;color:var(--ink);padding:8px 16px;border:0;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;">✅ Chấp nhận & Mở khóa</button>
+            <button onclick="reviewAppeal('${a.id}', 'rejected')" style="background:#ffcdd2;color:#b71c1c;padding:8px 16px;border:0;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;">❌ Từ chối</button>
+          </div>` : `
+          <div style="margin-top:10px;font-size:11px;color:var(--muted);">
+            Xử lý bởi: ${a.reviewedBy} lúc ${new Date(a.reviewedAt).toLocaleString('vi-VN')}
+            ${a.adminNote ? `<br>Ghi chú: ${a.adminNote}` : ''}
+          </div>`}
+      </div>`).join('');
+  } catch (e) { box.innerHTML = `<p style="color:red;font-size:12px;">${e.message}</p>`; }
+}
+
+window.reviewAppeal = async (id, status) => {
+  const note = document.querySelector(`#anote-${id}`)?.value || '';
+  try {
+    await api(`/api/admin/appeals/${id}`, { method: 'PUT', body: JSON.stringify({ status, adminNote: note }) });
+    showToast(status === 'accepted' ? '✅ Đã chấp nhận. Tài khoản được mở khóa.' : 'Đã từ chối.');
+    loadAppeals(); loadStats(); loadUsers(document.querySelector('#searchInput').value);
+  } catch (e) { showToast(e.message); }
+};
+
+/* ============ TAB SWITCHING ============ */
+document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+  document.querySelector(`#tab-${tab.dataset.tab}`).classList.remove('hidden');
+  if (tab.dataset.tab === 'appeals') loadAppeals();
+}));
+
+/* ============ SEARCH ============ */
+let searchTimer;
+document.querySelector('#searchInput').addEventListener('input', e => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => loadUsers(e.target.value), 300);
+});
+
+/* ============ INIT ============ */
+// Ẩn tab-content mặc định
+document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+
+loadStats();
+loadUsers();
+loadAppeals();
+</script>
+</body>
+</html>

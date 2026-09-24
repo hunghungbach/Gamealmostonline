@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arcade Hub | Đang chơi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--ink:#171717;--cream:#fffdf9;--orange:#ff5c35;--lime:#d9f36a;--muted:#77736c}
+    *{box-sizing:border-box}
+    body{margin:0;background:#f5f2ed;color:var(--ink);font-family:'DM Sans',sans-serif}
+    .game-page{min-height:100vh;max-width:1100px;margin:auto;padding:24px 5% 50px}
+    .game-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px}
+    .brand{display:flex;align-items:center;gap:10px;font:700 15px 'Space Grotesk';letter-spacing:.04em}
+    .brand-mark{display:grid;place-items:center;background:var(--ink);color:var(--lime);width:29px;height:29px;border-radius:7px;transform:rotate(-8deg);font-size:19px}
+    .brand-accent{color:var(--orange)}
+    .back-link{color:var(--muted);font-size:12px;text-decoration:none}
+    .back-link:hover{color:var(--orange)}
+    .game-header{display:flex;justify-content:space-between;align-items:end;margin-bottom:20px}
+    .eyebrow{margin:0 0 10px;color:var(--orange);font-size:10px;letter-spacing:.2em;font-weight:700}
+    .game-header h1{font:700 clamp(36px,6vw,66px)/.95 'Space Grotesk';letter-spacing:-.05em;margin:0}
+    .game-header h1 em{color:var(--orange);font-style:normal}
+    .stats{display:flex;gap:24px;text-align:right}
+    .stats small{display:block;color:var(--muted);font-size:10px}
+    .stats strong{font:700 25px 'Space Grotesk'}
+    .play-area{height:min(62vh,550px);min-height:380px;background:#1a2527;border:8px solid var(--ink);border-radius:12px;position:relative;overflow:hidden;box-shadow:12px 14px 0 var(--lime);background-image:radial-gradient(circle at 20% 25%,#314a49 1px,transparent 2px),radial-gradient(circle at 70% 60%,#314a49 1px,transparent 2px);background-size:35px 35px}
+    .target{width:54px;height:54px;border:0;border-radius:50%;background:var(--lime);box-shadow:0 0 0 8px #d9f36a33,0 0 35px var(--lime);position:absolute;display:none;transform:translate(-50%,-50%);z-index:2;cursor:pointer}
+    .target:after{content:'+';font-size:25px;font-weight:700}
+    .game-message{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:#fff;z-index:3}
+    .game-message h2{font:700 30px 'Space Grotesk';margin:0 0 10px}
+    .game-message p{color:#b9c2bb;font-size:13px;margin:0 0 22px}
+    .button{background:var(--orange);color:#fff;border:0;padding:13px 19px;border-radius:4px;font-weight:700;font-size:12px;cursor:pointer}
+    .button:hover{background:#ff714f}
+    .result{margin-top:32px;padding:22px 0;border-top:1px solid #ded9d0;display:flex;justify-content:space-between;align-items:center}
+    .result h2{font:700 25px 'Space Grotesk';margin:0}
+    .result p{color:var(--muted);font-size:12px;margin:6px 0 0}
+    .result a{font-size:12px;color:var(--orange);font-weight:700;text-decoration:none}
+    .hidden{display:none!important}
+    /* Memory game */
+    .memory-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:30px;max-width:600px;margin:auto;position:absolute;inset:0;align-content:center}
+    .memory-card{aspect-ratio:1;background:var(--orange);border-radius:8px;display:grid;place-items:center;font-size:32px;cursor:pointer;transition:.2s;user-select:none}
+    .memory-card.flipped{background:var(--cream);color:var(--ink)}
+    .memory-card.matched{background:var(--lime);opacity:.5;cursor:default}
+    /* Snake game */
+    .snake-wrap{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px}
+    .snake-canvas{background:#0f1719;border:4px solid var(--lime);border-radius:8px;max-width:90%;max-height:70%}
+    .snake-hint{color:#b9c2bb;font-size:12px}
+    @media(max-width:600px){.game-header{display:block}.stats{text-align:left;margin-top:20px}.play-area{min-height:360px}.result{display:block}.result a{display:inline-block;margin-top:18px}}
+  </style>
+</head>
+<body>
+  <main class="game-page">
+    <nav class="game-nav">
+      <a class="brand" href="index.html"><span class="brand-mark">A</span><span>ARCADE<span class="brand-accent">HUB</span></span></a>
+      <a class="back-link" href="index.html">← Về trang chủ</a>
+    </nav>
+    <header class="game-header">
+      <div><p class="eyebrow">MINI GAME</p><h1 id="gameTitle">Reflex <em>Challenge</em></h1></div>
+      <div class="stats">
+        <div><small>ĐIỂM</small><strong id="score">0</strong></div>
+        <div><small>KỶ LỤC</small><strong id="best">0</strong></div>
+        <div><small>THỜI GIAN</small><strong><span id="time">20</span>s</strong></div>
+      </div>
+    </header>
+    <section class="play-area" id="playArea"></section>
+    <section class="result">
+      <div><h2 id="resultTitle">Thử thách phản xạ</h2><p id="resultDesc">Điểm cao nhất được lưu riêng trên thiết bị này.</p></div>
+      <a href="index.html#games">Chọn game khác →</a>
+    </section>
+  </main>
+
+  <script>
+    const sessionToken = localStorage.getItem('arcadeToken');
+    const sessionUser = JSON.parse(localStorage.getItem('arcadeUser') || 'null');
+    const accessCheck = sessionUser?.locked
+      ? Promise.resolve(false)
+      : sessionToken
+        ? fetch('/api/auth/me', { headers: { Authorization: `Bearer ${sessionToken}` } })
+          .then(response => response.json().then(result => ({ response, result })))
+          .then(({ response, result }) => {
+            if (response.status === 403 && result.locked) {
+              localStorage.setItem('arcadeUser', JSON.stringify({ ...(sessionUser || {}), locked: true, lockReason: result.lockReason }));
+              location.replace('appeal.html');
+              return false;
+            }
+            if (!response.ok) {
+              localStorage.removeItem('arcadeToken');
+              localStorage.removeItem('arcadeUser');
+              location.replace('index.html');
+              return false;
+            }
+            return true;
+          })
+          .catch(() => {
+            location.replace('index.html');
+            return false;
+          })
+        : Promise.resolve(true);
+    const params = new URLSearchParams(location.search);
+    const gameName = params.get('game') || 'Reflex Challenge';
+    const externalUrl = params.get('url');
+    const sourceUrl = params.get('source');
+
+    const area = document.querySelector('#playArea');
+    const scoreEl = document.querySelector('#score');
+    const bestEl = document.querySelector('#best');
+    const timeEl = document.querySelector('#time');
+    const bestKey = `arcadeBest:${gameName}`;
+    const statsEl = document.querySelector('.stats');
+    const playStartedAt = Date.now();
+    let playTimeRecorded = false;
+
+    bestEl.textContent = localStorage.getItem(bestKey) || '0';
+
+    // Set title
+    const titleHTML = gameName.replace(/ /g, ' <em>') + (gameName.includes(' ') ? '</em>' : '');
+    document.querySelector('#gameTitle').innerHTML = titleHTML;
+
+    function saveLeaderboardScore(finalScore, gameTitle) {
+      if (playTimeRecorded) return;
+      playTimeRecorded = true;
+      const userRaw = localStorage.getItem('arcadeUser');
+      let player = 'Khách';
+      try { if (userRaw) player = JSON.parse(userRaw).name || 'Khách'; } catch (e) {}
+      const scores = JSON.parse(localStorage.getItem('arcadeLeaderboard') || '[]');
+      const durationSeconds = Math.max(1, Math.round((Date.now() - playStartedAt) / 1000));
+      scores.push({ name: player, game: gameTitle, score: finalScore, durationSeconds, date: Date.now() });
+      localStorage.setItem('arcadeLeaderboard', JSON.stringify(scores.slice(-100)));
+    }
+
+    /* ============ GAME NGOÀI — nhúng game được cho phép ============ */
+    function showExternalGame(url) {
+      if (!/^https?:\/\//i.test(url)) return;
+      const isMadKid = /^https:\/\/www\.madkidgames\.com\/games\/[a-z0-9-]+\/index\.html(?:\?.*)?$/i.test(url);
+      const provider = isMadKid ? 'MadKidGames' : 'Nguồn ngoài';
+      statsEl.innerHTML = `<div><small>NGUỒN</small><strong>${provider}</strong></div>`;
+      document.querySelector('#resultTitle').textContent = isMadKid ? 'Đang chơi từ MadKidGames' : 'Game từ nguồn ngoài';
+      document.querySelector('#resultDesc').textContent = isMadKid
+        ? 'Game được nhúng từ thư viện Embeddable HTML5 Games của MadKidGames.'
+        : 'Nguồn này không cho phép nhúng trực tiếp vào website khác.';
+      if (isMadKid) {
+        area.innerHTML = `
+          <iframe title="${gameName}" src="${url}" allowfullscreen loading="eager"
+            style="position:absolute;inset:0;width:100%;height:100%;border:0;background:#101719;"
+            referrerpolicy="strict-origin-when-cross-origin"></iframe>`;
+        if (sourceUrl && /^https:\/\/www\.madkidgames\.com\/game\/[a-z0-9-]+$/i.test(sourceUrl)) {
+          document.querySelector('.result a').href = sourceUrl;
+          document.querySelector('.result a').textContent = 'Xem trang MadKidGames →';
+          document.querySelector('.result a').target = '_blank';
+          document.querySelector('.result a').rel = 'noopener';
+        }
+        return;
+      }
+      area.innerHTML = `
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#fff;padding:40px;background:linear-gradient(135deg,#1a2527,#2d3f42);">
+          <div style="font-size:80px;margin-bottom:20px;">🎮</div>
+          <h2 style="font:700 32px 'Space Grotesk';margin:0 0 12px;">${gameName}</h2>
+          <p style="color:#b9c2bb;font-size:14px;margin:0 0 30px;max-width:400px;line-height:1.6;">
+            Nguồn game này không cho phép nhúng trực tiếp vào website khác vì lý do bảo mật.
+          </p>
+          <a href="${url}" target="_blank" rel="noopener" 
+             style="background:var(--lime);color:var(--ink);padding:16px 32px;border-radius:6px;font-weight:700;font-size:14px;text-decoration:none;box-shadow:0 6px 0 #a8c24a;">
+            ▶ Mở trang game
+          </a>
+          <p style="color:#7a8a85;font-size:11px;margin-top:24px;">Sẽ mở trong tab mới</p>
+        </div>`;
+    }
+
+    /* ============ GAME 1: REFLEX CHALLENGE ============ */
+    function startReflex() {
+      let score = 0, time = 20, timer;
+      area.innerHTML = `
+        <button class="target" id="target"></button>
+        <div class="game-message" id="message">
+          <div>
+            <h2>Sẵn sàng chưa?</h2>
+            <p>Bắt càng nhiều điểm sáng càng tốt trong 20 giây.</p>
+            <button class="button" id="startButton">Bắt đầu chơi</button>
+          </div>
+        </div>`;
+
+      const target = document.querySelector('#target');
+      const message = document.querySelector('#message');
+
+      function placeTarget() {
+        target.style.left = `${24 + Math.random() * 52}%`;
+        target.style.top = `${22 + Math.random() * 56}%`;
+      }
+      function start() {
+        score = 0; time = 20;
+        scoreEl.textContent = score;
+        timeEl.textContent = time;
+        message.classList.add('hidden');
+        target.style.display = 'block';
+        placeTarget();
+        clearInterval(timer);
+        timer = setInterval(() => {
+          time -= 1;
+          timeEl.textContent = time;
+          if (time <= 0) finish();
+        }, 1000);
+      }
+      function finish() {
+        clearInterval(timer);
+        target.style.display = 'none';
+        const best = Math.max(score, Number(localStorage.getItem(bestKey) || 0));
+        localStorage.setItem(bestKey, best);
+        bestEl.textContent = best;
+        saveLeaderboardScore(score, gameName);
+        message.innerHTML = `<div><h2>Hết giờ!</h2><p>Bạn ghi được <strong>${score} điểm</strong>. Kỷ lục: ${best}.</p><button class="button" id="restartButton">Chơi lại</button></div>`;
+        message.classList.remove('hidden');
+        document.querySelector('#restartButton').addEventListener('click', start);
+      }
+      target.addEventListener('click', () => {
+        score += 1;
+        scoreEl.textContent = score;
+        placeTarget();
+      });
+      document.querySelector('#startButton').addEventListener('click', start);
+    }
+
+    /* ============ GAME 2: MEMORY MATCH ============ */
+    function startMemory() {
+      let moves = 0, matched = 0, firstCard = null, lock = false;
+      const emojis = ['🎮','🎯','🎨','🎪','🎭','🎬','🎲','🎰'];
+      const deck = [...emojis, ...emojis].sort(() => Math.random() - 0.5);
+      timeEl.textContent = '∞';
+      scoreEl.textContent = '0';
+      area.innerHTML = `<div class="memory-grid" id="memGrid">${deck.map((e, i) => `<div class="memory-card" data-idx="${i}" data-val="${e}"></div>`).join('')}</div>`;
+
+      const grid = document.querySelector('#memGrid');
+      grid.addEventListener('click', e => {
+        const card = e.target.closest('.memory-card');
+        if (!card || lock || card.classList.contains('flipped') || card.classList.contains('matched')) return;
+        card.textContent = card.dataset.val;
+        card.classList.add('flipped');
+
+        if (!firstCard) { firstCard = card; return; }
+        moves += 1;
+        scoreEl.textContent = moves;
+
+        if (firstCard.dataset.val === card.dataset.val) {
+          firstCard.classList.add('matched');
+          card.classList.add('matched');
+          firstCard = null;
+          matched += 1;
+          if (matched === emojis.length) {
+            setTimeout(() => {
+              const finalScore = Math.max(0, 100 - moves * 3);
+              const best = Math.max(finalScore, Number(localStorage.getItem(bestKey) || 0));
+              localStorage.setItem(bestKey, best);
+              bestEl.textContent = best;
+              saveLeaderboardScore(finalScore, gameName);
+              area.innerHTML = `<div class="game-message"><div><h2>Hoàn thành! 🎉</h2><p>${moves} lượt lật. Điểm: <strong>${finalScore}</strong></p><button class="button" onclick="location.reload()">Chơi lại</button></div></div>`;
+            }, 400);
+          }
+        } else {
+          lock = true;
+          setTimeout(() => {
+            firstCard.textContent = '';
+            card.textContent = '';
+            firstCard.classList.remove('flipped');
+            card.classList.remove('flipped');
+            firstCard = null;
+            lock = false;
+          }, 700);
+        }
+      });
+    }
+
+    /* ============ GAME 3: SNAKE CLASSIC ============ */
+    function startSnake() {
+      timeEl.textContent = '∞';
+      area.innerHTML = `
+        <div class="snake-wrap">
+          <canvas class="snake-canvas" id="snakeCanvas" width="400" height="300"></canvas>
+          <p class="snake-hint">Dùng phím ↑ ↓ ← → để di chơi. Ăn táo đỏ để tăng điểm.</p>
+        </div>`;
+      const canvas = document.querySelector('#snakeCanvas');
+      const ctx = canvas.getContext('2d');
+      const cell = 20;
+      const cols = canvas.width / cell;
+      const rows = canvas.height / cell;
+
+      let snake = [{x: 5, y: 5}];
+      let dir = {x: 1, y: 0};
+      let food = {x: 10, y: 10};
+      let score = 0;
+      let alive = true;
+
+      function placeFood() {
+        food = { x: Math.floor(Math.random() * cols), y: Math.floor(Math.random() * rows) };
+      }
+
+      function draw() {
+        ctx.fillStyle = '#0f1719';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // Snake
+        snake.forEach((seg, i) => {
+          ctx.fillStyle = i === 0 ? '#ff5c35' : '#d9f36a';
+          ctx.fillRect(seg.x * cell + 1, seg.y * cell + 1, cell - 2, cell - 2);
+        });
+        // Food
+        ctx.fillStyle = '#ff5c35';
+        ctx.beginPath();
+        ctx.arc(food.x * cell + cell / 2, food.y * cell + cell / 2, cell / 2 - 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      function tick() {
+        if (!alive) return;
+        const head = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+        if (head.x < 0 || head.x >= cols || head.y < 0 || head.y >= rows || snake.some(s => s.x === head.x && s.y === head.y)) {
+          alive = false;
+          const best = Math.max(score, Number(localStorage.getItem(bestKey) || 0));
+          localStorage.setItem(bestKey, best);
+          bestEl.textContent = best;
+          saveLeaderboardScore(score, gameName);
+          area.innerHTML = `<div class="game-message"><div><h2>Game Over</h2><p>Điểm của bạn: <strong>${score}</strong></p><button class="button" onclick="location.reload()">Chơi lại</button></div></div>`;
+          return;
+        }
+        snake.unshift(head);
+        if (head.x === food.x && head.y === food.y) {
+          score += 10;
+          scoreEl.textContent = score;
+          placeFood();
+        } else {
+          snake.pop();
+        }
+        draw();
+      }
+
+      document.addEventListener('keydown', e => {
+        const key = e.key;
+        if (key === 'ArrowUp' && dir.y === 0) dir = {x: 0, y: -1};
+        else if (key === 'ArrowDown' && dir.y === 0) dir = {x: 0, y: 1};
+        else if (key === 'ArrowLeft' && dir.x === 0) dir = {x: -1, y: 0};
+        else if (key === 'ArrowRight' && dir.x === 0) dir = {x: 1, y: 0};
+      });
+
+      draw();
+      setInterval(tick, 120);
+    }
+
+    /* ============ ROUTER ============ */
+    accessCheck.then(canPlay => {
+      if (!canPlay) return;
+      window.addEventListener('pagehide', () => saveLeaderboardScore(0, gameName), { once: true });
+
+      if (externalUrl) {
+        showExternalGame(externalUrl);
+      } else if (gameName === 'Memory Match') {
+        startMemory();
+      } else if (gameName === 'Snake Classic') {
+        startSnake();
+      } else {
+        startReflex();
+      }
+    });
+  </script>
+</body>
+</html>

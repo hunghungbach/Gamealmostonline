@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arcade Hub | Khiếu nại</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#171717;--cream:#fffdf9;--orange:#ff5c35;--lime:#d9f36a;--muted:#77736c;--line:#ded9d0}
+*{box-sizing:border-box}
+body{margin:0;background:#f5f2ed;color:var(--ink);font-family:'DM Sans',sans-serif;min-height:100vh}
+.page{max-width:640px;margin:auto;padding:30px 5% 60px}
+.nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:40px}
+.brand{display:flex;align-items:center;gap:10px;font:700 15px 'Space Grotesk';letter-spacing:.04em;text-decoration:none;color:inherit}
+.brand-mark{display:grid;place-items:center;background:var(--ink);color:var(--lime);width:29px;height:29px;border-radius:7px;transform:rotate(-8deg);font-size:19px}
+.brand-accent{color:var(--orange)}
+.back{color:var(--muted);font-size:12px;text-decoration:none}
+.eyebrow{font-size:10px;letter-spacing:.2em;font-weight:700;color:var(--orange);margin:0 0 14px}
+h1{font:700 clamp(36px,6vw,54px)/.95 'Space Grotesk';letter-spacing:-.05em;margin:0 0 20px}
+h1 em{color:var(--orange);font-style:normal}
+.sub{color:var(--muted);font-size:13px;line-height:1.7;margin:0 0 30px}
+.card{background:var(--cream);border:1px solid var(--line);border-radius:10px;padding:28px;margin-bottom:20px}
+.card h2{font:700 18px 'Space Grotesk';margin:0 0 16px}
+label{display:block;font-size:11px;font-weight:700;margin:16px 0 6px}
+textarea,input{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:6px;font:inherit;font-size:13px;background:#fff}
+textarea{min-height:130px;resize:vertical}
+textarea:focus,input:focus{outline:2px solid var(--lime);border-color:transparent}
+button{background:var(--ink);color:#fff;border:0;padding:14px 22px;border-radius:6px;font-weight:700;font-size:13px;cursor:pointer;margin-top:20px;width:100%}
+button:hover{background:#333}
+button:disabled{opacity:.5;cursor:not-allowed}
+.logout-login-button{background:transparent;color:var(--ink);border:1px solid var(--line);margin-top:0}
+.logout-login-button:hover{background:var(--ink);color:#fff}
+.hint{font-size:11px;color:var(--muted);margin-top:6px}
+.appeal-item{background:#f5f2ed;border-left:4px solid var(--orange);padding:16px;border-radius:6px;margin-bottom:12px;font-size:12px}
+.appeal-item.accepted{border-color:#4caf50;background:#e8f5e9}
+.appeal-item.rejected{border-color:#f44336;background:#ffebee}
+.appeal-item.pending{border-color:#ffb700;background:#fff3cd}
+.appeal-item strong{display:block;margin-bottom:6px;font-size:13px}
+.appeal-item .date{color:var(--muted);font-size:10px}
+.appeal-item .note{margin-top:8px;padding-top:8px;border-top:1px dashed #ccc;font-style:italic}
+.toast{position:fixed;right:24px;bottom:24px;background:var(--ink);color:#fff;padding:14px 18px;font-size:12px;border-left:4px solid var(--lime);transform:translateY(120px);transition:.3s;z-index:20}
+.toast.show{transform:translateY(0)}
+.success-box{background:#e8f5e9;border:1px solid #a5d6a7;color:#2e7d32;padding:20px;border-radius:8px;text-align:center;font-size:13px;display:none}
+.success-box.show{display:block}
+.hidden{display:none!important}
+.status-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;text-transform:uppercase;margin-bottom:6px}
+.status-badge.pending{background:#fff3cd;color:#7a5a00}
+.status-badge.accepted{background:#c8e6c9;color:#2e7d32}
+.status-badge.rejected{background:#ffcdd2;color:#b71c1c}
+.locked-info{background:linear-gradient(135deg,#fff3cd,#ffe6a3);border-left:4px solid #ffb700;padding:18px 20px;border-radius:8px;margin-bottom:24px;color:#7a5a00}
+.locked-info strong{display:block;font-size:14px;margin-bottom:2px}
+.locked-info p{margin:0;font-size:12px;line-height:1.5}
+.locked-info em{font-style:normal;font-weight:700}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="page">
+  <nav class="nav">
+    <a class="brand" href="index.html"><span class="brand-mark">A</span><span>ARCADE<span class="brand-accent">HUB</span></span></a>
+    <a class="back" href="index.html">← Trang chủ</a>
+  </nav>
+
+  <div id="lockedInfo" class="locked-info hidden">
+  <strong>🔒 Tài khoản của bạn đang bị khóa</strong>
+  <p>Lý do: <em id="lockedReasonText">...</em></p>
+  <p style="margin-top:4px;font-size:11px;opacity:.8;">Nếu cho rằng đây là oan, hãy gửi khiếu nại bên dưới.</p>
+</div>
+
+  <p class="eyebrow">BẢO VỆ QUYỀN LỢI</p>
+  <h1>Khiếu nại<br><em>khi bị oan.</em></h1>
+  <p class="sub">Nếu bạn cho rằng mình bị tố cáo sai hoặc bị khóa oan, hãy gửi khiếu nại. Admin sẽ xem xét công bằng.</p>
+
+  <div class="card">
+    <h2>📋 Khiếu nại của tôi</h2>
+    <div id="appealList"><p style="color:var(--muted);font-size:12px;">Đang tải...</p></div>
+  </div>
+
+  <div id="lockedBanner" class="warning-box hidden" style="display:none;">
+  🔒 <strong>Tài khoản của bạn đang bị khóa.</strong> Bạn chỉ có thể gửi khiếu nại. Mọi chức năng khác bị tạm khóa.
+</div>
+
+  <div id="formBox" class="card">
+    <h2>✍️ Gửi khiếu nại mới</h2>
+    <form id="appealForm">
+      <label>Lý do khiếu nại <span style="color:var(--orange)">*</span></label>
+      <textarea id="reason" minlength="20" maxlength="1000" placeholder="Giải thích rõ tại sao bạn cho rằng mình bị oan (tối thiểu 20 ký tự)..." required></textarea>
+      <p class="hint"><span id="reasonCount">0</span>/1000 ký tự</p>
+
+      <label>Bằng chứng (link ảnh/video) — không bắt buộc</label>
+      <input id="evidence" type="text" placeholder="https://..." maxlength="300">
+
+      <button type="submit" id="submitBtn">Gửi khiếu nại</button>
+    </form>
+  </div>
+
+  <div id="successBox" class="success-box">
+    ✅ <strong>Đã gửi khiếu nại!</strong>
+    <p style="margin:10px 0 0;">Admin sẽ xem xét và phản hồi sớm nhất.</p>
+  </div>
+
+  <button type="button" class="logout-login-button" id="logoutLoginButton">Đăng xuất và đăng nhập tài khoản khác</button>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const API_BASE = location.protocol === 'file:' ? 'http://localhost:3000' : '';
+const token = localStorage.getItem('arcadeToken');
+// Hiện thông tin khóa nếu user bị khóa
+const user = JSON.parse(localStorage.getItem('arcadeUser') || 'null');
+if (user && user.locked) {
+  const banner = document.querySelector('#lockedInfo');
+  const reasonEl = document.querySelector('#lockedReasonText');
+  if (banner) banner.classList.remove('hidden');
+  if (reasonEl) reasonEl.textContent = user.lockReason || 'Không có lý do cụ thể';
+}
+if (!token) { alert('Vui lòng đăng nhập.'); location.href = 'index.html'; }
+
+function showToast(msg) {
+  const t = document.querySelector('#toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(window._tt);
+  window._tt = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+const STATUS_LABEL = { pending: 'Đang chờ', accepted: 'Đã chấp nhận', rejected: 'Đã từ chối' };
+
+async function loadAppeals() {
+  try {
+    const r = await fetch(`${API_BASE}/api/appeal/me`, { headers: { Authorization: `Bearer ${token}` } });
+    const d = await r.json();
+    const box = document.querySelector('#appealList');
+    if (!d.appeals.length) {
+      box.innerHTML = '<p style="color:var(--muted);font-size:12px;">Bạn chưa gửi khiếu nại nào.</p>';
+      return;
+    }
+    box.innerHTML = d.appeals.map(a => `
+      <div class="appeal-item ${a.status}">
+        <span class="status-badge ${a.status}">${STATUS_LABEL[a.status] || a.status}</span>
+        <strong>${a.reason.slice(0, 120)}${a.reason.length > 120 ? '...' : ''}</strong>
+        <div class="date">Gửi ngày: ${new Date(a.createdAt).toLocaleString('vi-VN')}</div>
+        ${a.adminNote ? `<div class="note">Admin: ${a.adminNote}</div>` : ''}
+      </div>`).join('');
+
+    // Ẩn form nếu đang có khiếu nại pending
+    const hasPending = d.appeals.some(a => a.status === 'pending');
+    if (hasPending) {
+      document.querySelector('#formBox').classList.add('hidden');
+    }
+  } catch (e) { showToast('Lỗi tải khiếu nại.'); }
+}
+
+async function refreshLockReason() {
+  try {
+    const r = await fetch(`${API_BASE}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
+    const d = await r.json();
+    if (r.status === 403 && d.locked) {
+      document.querySelector('#lockedInfo').classList.remove('hidden');
+      document.querySelector('#lockedReasonText').textContent = d.lockReason || 'Không có lý do cụ thể';
+      localStorage.setItem('arcadeUser', JSON.stringify({ ...(user || {}), locked: true, lockReason: d.lockReason }));
+    }
+  } catch (e) { showToast('Không tải được trạng thái tài khoản.'); }
+}
+
+document.querySelector('#reason').addEventListener('input', e => {
+  document.querySelector('#reasonCount').textContent = e.target.value.length;
+});
+
+document.querySelector('#appealForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = document.querySelector('#submitBtn');
+  btn.disabled = true; btn.textContent = 'Đang gửi...';
+  try {
+    const r = await fetch(`${API_BASE}/api/appeal`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        reason: document.querySelector('#reason').value,
+        evidence: document.querySelector('#evidence').value
+      })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.message);
+    document.querySelector('#formBox').classList.add('hidden');
+    document.querySelector('#successBox').classList.add('show');
+    loadAppeals();
+  } catch (err) {
+    showToast(err.message || 'Lỗi gửi khiếu nại.');
+    btn.disabled = false; btn.textContent = 'Gửi khiếu nại';
+  }
+});
+
+document.querySelector('#logoutLoginButton').addEventListener('click', () => {
+  localStorage.removeItem('arcadeToken');
+  localStorage.removeItem('arcadeUser');
+  location.href = 'index.html#login';
+});
+
+if (user && user.locked) {
+  const banner = document.querySelector('#lockedBanner');
+  banner.classList.remove('hidden');
+  banner.style.display = 'block';
+}
+
+refreshLockReason().then(loadAppeals);
+</script>
+</body>
+</html>

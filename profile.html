@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arcade Hub | Trang cá nhân</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#171717;
+  --paper:#f5f2ed;
+  --cream:#fffdf9;
+  --orange:#ff5c35;
+  --lime:#d9f36a;
+  --muted:#77736c;
+  --line:#ded9d0;
+  --soft:#f8f5f2;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:'DM Sans',sans-serif;min-height:100vh}
+button,a,input{font:inherit}
+button{cursor:pointer}
+a{text-decoration:none;color:inherit}
+.page{max-width:1200px;margin:0 auto;padding:30px 4% 60px}
+.nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
+.brand{display:flex;align-items:center;gap:10px;font:700 15px 'Space Grotesk';letter-spacing:.04em;text-decoration:none;color:inherit}
+.brand-mark{display:grid;place-items:center;background:var(--ink);color:var(--lime);width:29px;height:29px;border-radius:7px;transform:rotate(-8deg);font-size:19px}
+.brand-accent{color:var(--orange)}
+.back{color:var(--muted);font-size:12px;text-decoration:none}
+.eyebrow{font-size:10px;letter-spacing:.2em;font-weight:700;color:var(--orange);margin:0 0 12px}
+h1{font:700 clamp(32px,5vw,52px)/.95 'Space Grotesk';letter-spacing:-.05em;margin:0 0 28px;display:flex;align-items:flex-end;gap:.18em;flex-wrap:nowrap}
+h1 span{display:inline-block}
+h1 em{color:var(--orange);font-style:normal}
+.profile-shell{display:grid;grid-template-columns:260px minmax(0,1fr);gap:22px;align-items:start}
+.profile-sidebar{position:sticky;top:22px;background:var(--cream);border:1px solid var(--line);border-radius:18px;padding:18px 14px;box-shadow:0 12px 28px rgba(23,23,23,.04)}
+.profile-summary{display:flex;align-items:center;gap:12px;padding:10px 12px 18px;border-bottom:1px solid var(--line);margin-bottom:18px}
+.avatar-big{display:grid;place-items:center;width:54px;height:54px;border-radius:16px;background:linear-gradient(135deg,var(--lime),#f3f8b7);font:700 24px 'Space Grotesk'}
+.profile-summary h2{margin:0;font-size:15px;line-height:1.2}
+.profile-summary p{margin:6px 0 0;color:var(--muted);font-size:11px;word-break:break-word}
+.profile-nav{display:flex;flex-direction:column;gap:8px}
+.profile-nav button{width:100%;display:flex;align-items:center;justify-content:space-between;background:transparent;border:1px solid transparent;border-radius:10px;padding:12px 12px;color:var(--ink);font-weight:700;font-size:12px;text-align:left;transition:.2s ease}
+.profile-nav button:hover,.profile-nav button:focus-visible,.profile-nav button.active{background:var(--soft);border-color:var(--line);transform:translateX(2px)}
+.profile-nav .nav-label{display:flex;align-items:center;gap:10px}
+.profile-nav .nav-icon{display:grid;place-items:center;width:26px;height:26px;border-radius:8px;background:var(--paper);font-size:14px}
+.profile-nav .nav-arrow{color:var(--muted);font-size:14px}
+.profile-panel{background:var(--cream);border:1px solid var(--line);border-radius:18px;padding:28px;box-shadow:0 12px 28px rgba(23,23,23,.04);display:none;min-height:360px}
+.profile-panel.active{display:block;animation:fadeIn .18s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
+.panel-header h3{margin:0;font:700 22px 'Space Grotesk';letter-spacing:-.04em}
+.badge{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;background:var(--lime);font:700 10px 'DM Sans';text-transform:uppercase;letter-spacing:.08em}
+.badge.admin{background:var(--orange);color:#fff}
+.info-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 20px}
+.info-row{padding:14px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;display:flex;flex-direction:column;gap:8px}
+.info-row span:first-child{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.info-row strong{font-size:14px;line-height:1.5}
+.form-stack{display:grid;gap:14px;max-width:420px}
+label{display:block;font-size:11px;font-weight:700;margin:0 0 6px;letter-spacing:.04em;color:var(--muted);text-transform:uppercase}
+input{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:10px;font-size:13px;background:#fff}
+input:focus{outline:2px solid rgba(217,243,106,.6);border-color:transparent}
+.button-row{display:flex;gap:10px;flex-wrap:wrap}
+button.primary,button.danger,button.secondary{padding:12px 18px;border:0;border-radius:10px;font-weight:700;font-size:12px}
+button.primary{background:var(--ink);color:#fff}
+button.secondary{background:var(--lime);color:var(--ink)}
+button.danger{background:#d93025;color:#fff}
+.best-score{padding:12px 14px;background:var(--soft);border-radius:10px;display:flex;justify-content:space-between;align-items:center;border:1px solid var(--line);font-size:12px}
+.best-score strong{color:var(--orange)}
+.score-list{display:grid;gap:10px}
+.subtle{margin:0;color:var(--muted);font-size:12px;line-height:1.6}
+.action-link{display:inline-flex;align-items:center;justify-content:center;background:var(--orange);color:#fff;padding:12px 18px;border-radius:10px;font-weight:700;font-size:12px}
+.action-link.secondary{background:var(--ink);color:#fff}
+.toast{position:fixed;right:24px;bottom:24px;background:var(--ink);color:#fff;padding:14px 18px;font-size:12px;border-left:4px solid var(--lime);transform:translateY(120px);transition:.3s;z-index:20}
+.toast.show{transform:translateY(0)}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="page">
+  <nav class="nav">
+    <a class="brand" href="index.html"><span class="brand-mark">A</span><span>ARCADE<span class="brand-accent">HUB</span></span></a>
+    <a class="back" href="index.html">← Trang chủ</a>
+  </nav>
+
+  <p class="eyebrow">TÀI KHOẢN</p>
+  <h1><span>Trang</span> <em>cá nhân.</em></h1>
+
+  <div class="profile-shell">
+    <aside class="profile-sidebar">
+      <div class="profile-summary">
+        <div class="avatar-big" id="avatarBig">?</div>
+        <div>
+          <h2 id="userNameShort">...</h2>
+          <p id="userEmailShort">...</p>
+        </div>
+      </div>
+
+      <nav class="profile-nav" aria-label="Danh mục trang cá nhân">
+        <button type="button" class="active" data-target="profile-account">
+          <span class="nav-label"><span class="nav-icon">👤</span>Thông tin</span>
+          <span class="nav-arrow">›</span>
+        </button>
+        <button type="button" data-target="profile-name">
+          <span class="nav-label"><span class="nav-icon">✏️</span>Tên hiển thị</span>
+          <span class="nav-arrow">›</span>
+        </button>
+        <button type="button" data-target="profile-password">
+          <span class="nav-label"><span class="nav-icon">🔒</span>Mật khẩu</span>
+          <span class="nav-arrow">›</span>
+        </button>
+        <button type="button" data-target="profile-scores">
+          <span class="nav-label"><span class="nav-icon">🏆</span>Điểm số</span>
+          <span class="nav-arrow">›</span>
+        </button>
+        <button type="button" data-target="profile-appeal">
+          <span class="nav-label"><span class="nav-icon">⚖️</span>Khiếu nại</span>
+          <span class="nav-arrow">›</span>
+        </button>
+        <button type="button" data-target="profile-danger">
+          <span class="nav-label"><span class="nav-icon">⚠️</span>Nguy hiểm</span>
+          <span class="nav-arrow">›</span>
+        </button>
+      </nav>
+    </aside>
+
+    <main class="profile-content">
+      <section class="profile-panel active" id="profile-account">
+        <div class="panel-header">
+          <h3>Thông tin tài khoản</h3>
+          <span class="badge" id="userRoleBadge">USER</span>
+        </div>
+        <div class="info-grid">
+          <div class="info-row"><span>Họ tên</span><strong id="userName">...</strong></div>
+          <div class="info-row"><span>Email</span><strong id="userEmail">...</strong></div>
+          <div class="info-row"><span>Ngày tạo</span><strong id="userCreated">...</strong></div>
+          <div class="info-row"><span>Đăng nhập cuối</span><strong id="userLastLogin">...</strong></div>
+          <div class="info-row"><span>Số lần đăng nhập</span><strong id="userLoginCount">...</strong></div>
+          <div class="info-row"><span>Vai trò</span><strong id="userRoleText">...</strong></div>
+        </div>
+      </section>
+
+      <section class="profile-panel" id="profile-name">
+        <div class="panel-header">
+          <h3>Đổi tên hiển thị</h3>
+        </div>
+        <div class="form-stack">
+          <div>
+            <label for="newName">Tên mới</label>
+            <input id="newName" type="text" minlength="2" maxlength="30" placeholder="Tên hiển thị">
+          </div>
+          <div class="button-row">
+            <button class="primary" id="saveName">Lưu tên</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="profile-panel" id="profile-password">
+        <div class="panel-header">
+          <h3>Đổi mật khẩu</h3>
+        </div>
+        <div class="form-stack">
+          <div>
+            <label for="oldPass">Mật khẩu hiện tại</label>
+            <input id="oldPass" type="password" placeholder="••••••••">
+          </div>
+          <div>
+            <label for="newPass">Mật khẩu mới</label>
+            <input id="newPass" type="password" placeholder="••••••••">
+          </div>
+          <div class="button-row">
+            <button class="secondary" id="savePass">Đổi mật khẩu</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="profile-panel" id="profile-scores">
+        <div class="panel-header">
+          <h3>Điểm cao của tôi</h3>
+        </div>
+        <div id="myScores" class="score-list"></div>
+      </section>
+
+      <section class="profile-panel" id="profile-appeal">
+        <div class="panel-header">
+          <h3>Khiếu nại & Tố cáo</h3>
+        </div>
+        <p class="subtle">Nếu bạn cho rằng mình bị xử lý oan hoặc muốn tố cáo hành vi vi phạm, hãy gửi yêu cầu ngay tại đây.</p>
+        <div class="button-row" style="margin-top:18px;">
+          <a href="appeal.html" class="action-link">📩 Gửi khiếu nại</a>
+          <a href="report.html" class="action-link secondary">🚨 Tố cáo</a>
+        </div>
+      </section>
+
+      <section class="profile-panel" id="profile-danger">
+        <div class="panel-header">
+          <h3>Vùng nguy hiểm</h3>
+        </div>
+        <p class="subtle">Xóa tài khoản sẽ không thể khôi phục. Nếu chắc chắn, hãy thực hiện hành động bên dưới.</p>
+        <div class="button-row" style="margin-top:18px;">
+          <button class="danger" id="deleteAccount">Xóa tài khoản</button>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const API_BASE = location.protocol === 'file:' ? 'http://localhost:3000' : '';
+const token = localStorage.getItem('arcadeToken');
+const localUser = JSON.parse(localStorage.getItem('arcadeUser') || 'null');
+
+if (!token || !localUser) {
+  location.href = 'index.html';
+}
+
+const profileNavButtons = [...document.querySelectorAll('.profile-nav button')];
+const profilePanels = [...document.querySelectorAll('.profile-panel')];
+
+function setActiveSection(targetId) {
+  profileNavButtons.forEach(button => {
+    button.classList.toggle('active', button.dataset.target === targetId);
+  });
+
+  profilePanels.forEach(panel => {
+    panel.classList.toggle('active', panel.id === targetId);
+  });
+}
+
+profileNavButtons.forEach(button => {
+  button.addEventListener('mouseenter', () => setActiveSection(button.dataset.target));
+  button.addEventListener('focus', () => setActiveSection(button.dataset.target));
+  button.addEventListener('click', () => setActiveSection(button.dataset.target));
+});
+
+function showToast(msg) {
+  const t = document.querySelector('#toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(window._tt);
+  window._tt = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+async function loadProfile() {
+  try {
+    const r = await fetch(`${API_BASE}/api/auth/me`, { headers: { Authorization: `Bearer ${token}` } });
+    const data = await r.json();
+    if (r.status === 403 && data.locked) {
+      localStorage.setItem('arcadeUser', JSON.stringify({ ...localUser, locked: true, lockReason: data.lockReason }));
+      location.href = 'appeal.html';
+      return;
+    }
+    if (!r.ok) { localStorage.clear(); location.href = 'index.html'; return; }
+    const { user } = data;
+    localStorage.setItem('arcadeUser', JSON.stringify(user));
+    renderUser(user);
+  } catch (e) { showToast('Không kết nối được máy chủ.'); }
+}
+
+function renderUser(user) {
+  const name = user.name || 'Người dùng';
+  document.querySelector('#avatarBig').textContent = name.charAt(0).toUpperCase();
+  document.querySelector('#userNameShort').textContent = name;
+  document.querySelector('#userEmailShort').textContent = user.email;
+  document.querySelector('#userName').textContent = name;
+  document.querySelector('#userEmail').textContent = user.email;
+  document.querySelector('#userRoleBadge').textContent = user.role === 'admin' ? 'ADMIN' : 'USER';
+  document.querySelector('#userRoleBadge').classList.toggle('admin', user.role === 'admin');
+  document.querySelector('#userRoleText').textContent = user.role === 'admin' ? 'Quản trị viên' : 'Thành viên';
+  document.querySelector('#userCreated').textContent = new Date(user.createdAt).toLocaleString('vi-VN');
+  document.querySelector('#userLastLogin').textContent = user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleString('vi-VN') : 'Chưa có';
+  document.querySelector('#userLoginCount').textContent = user.loginCount || 0;
+  document.querySelector('#newName').value = name;
+}
+
+function renderScores() {
+  const scores = JSON.parse(localStorage.getItem('arcadeLeaderboard') || '[]');
+  const mine = scores.filter(s => s.name === localUser.name).slice(0, 10);
+  const box = document.querySelector('#myScores');
+  box.innerHTML = mine.length
+    ? mine.map(s => `<div class="best-score"><span>${s.game}</span><strong>${s.score} điểm</strong></div>`).join('')
+    : '<p class="subtle">Chưa có điểm nào. Hãy chơi game để tích lũy điểm nhé!</p>';
+}
+
+document.querySelector('#saveName').addEventListener('click', async () => {
+  const name = document.querySelector('#newName').value.trim();
+  if (name.length < 2) return showToast('Tên cần tối thiểu 2 ký tự.');
+  try {
+    const r = await fetch(`${API_BASE}/api/user/profile`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ name })
+    });
+    const d = await r.json();
+    if (!r.ok) return showToast(d.message || 'Lỗi.');
+    localStorage.setItem('arcadeUser', JSON.stringify(d.user));
+    renderUser(d.user); showToast('Đã đổi tên!');
+  } catch (e) { showToast('Lỗi kết nối.'); }
+});
+
+document.querySelector('#savePass').addEventListener('click', async () => {
+  const oldPassword = document.querySelector('#oldPass').value;
+  const newPassword = document.querySelector('#newPass').value;
+  if (newPassword.length < 8) return showToast('Mật khẩu mới cần ≥ 8 ký tự.');
+  try {
+    const r = await fetch(`${API_BASE}/api/user/password`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ oldPassword, newPassword })
+    });
+    const d = await r.json();
+    if (!r.ok) return showToast(d.message || 'Lỗi.');
+    document.querySelector('#oldPass').value = '';
+    document.querySelector('#newPass').value = '';
+    showToast('Đổi mật khẩu thành công!');
+  } catch (e) { showToast('Lỗi kết nối.'); }
+});
+
+document.querySelector('#deleteAccount').addEventListener('click', async () => {
+  if (!confirm('Bạn chắc chắn muốn xóa tài khoản? Không thể khôi phục!')) return;
+  try {
+    const r = await fetch(`${API_BASE}/api/user/me`, {
+      method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!r.ok) return showToast('Lỗi.');
+    localStorage.clear();
+    showToast('Đã xóa tài khoản.');
+    setTimeout(() => location.href = 'index.html', 1500);
+  } catch (e) { showToast('Lỗi kết nối.'); }
+});
+
+loadProfile();
+renderScores();
+</script>
+</body>
+</html>

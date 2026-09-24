@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arcade Hub | Tố cáo vi phạm</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#171717;--cream:#fffdf9;--orange:#ff5c35;--lime:#d9f36a;--muted:#77736c;--line:#ded9d0}
+*{box-sizing:border-box}
+body{margin:0;background:#f5f2ed;color:var(--ink);font-family:'DM Sans',sans-serif;min-height:100vh}
+.page{max-width:640px;margin:auto;padding:30px 5% 60px}
+.nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:40px}
+.brand{display:flex;align-items:center;gap:10px;font:700 15px 'Space Grotesk';letter-spacing:.04em;text-decoration:none;color:inherit}
+.brand-mark{display:grid;place-items:center;background:var(--ink);color:var(--lime);width:29px;height:29px;border-radius:7px;transform:rotate(-8deg);font-size:19px}
+.brand-accent{color:var(--orange)}
+.back{color:var(--muted);font-size:12px;text-decoration:none}
+.eyebrow{font-size:10px;letter-spacing:.2em;font-weight:700;color:var(--orange);margin:0 0 14px}
+h1{font:700 clamp(36px,6vw,54px)/.95 'Space Grotesk';letter-spacing:-.05em;margin:0 0 20px}
+h1 em{color:var(--orange);font-style:normal}
+.sub{color:var(--muted);font-size:13px;line-height:1.7;margin:0 0 30px}
+.card{background:var(--cream);border:1px solid var(--line);border-radius:10px;padding:28px}
+label{display:block;font-size:11px;font-weight:700;margin:16px 0 6px;letter-spacing:.03em}
+label .req{color:var(--orange)}
+select,input,textarea{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:6px;font:inherit;font-size:13px;background:#fff}
+textarea{min-height:110px;resize:vertical;font-family:inherit}
+select:focus,input:focus,textarea:focus{outline:2px solid var(--lime);border-color:transparent}
+button{background:var(--ink);color:#fff;border:0;padding:14px 22px;border-radius:6px;font-weight:700;font-size:13px;cursor:pointer;margin-top:20px;width:100%}
+button:hover{background:#333}
+button:disabled{opacity:.5;cursor:not-allowed}
+.hint{font-size:11px;color:var(--muted);margin-top:6px}
+.warning-box{background:#fff3cd;border-left:4px solid #ffb700;padding:14px 16px;border-radius:6px;font-size:12px;line-height:1.6;margin:20px 0;color:#7a5a00}
+.toast{position:fixed;right:24px;bottom:24px;background:var(--ink);color:#fff;padding:14px 18px;font-size:12px;border-left:4px solid var(--lime);transform:translateY(120px);transition:.3s;z-index:20}
+.toast.show{transform:translateY(0)}
+.success-box{background:#e8f5e9;border:1px solid #a5d6a7;color:#2e7d32;padding:20px;border-radius:8px;text-align:center;font-size:13px;display:none}
+.success-box.show{display:block}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="page">
+  <nav class="nav">
+    <a class="brand" href="index.html"><span class="brand-mark">A</span><span>ARCADE<span class="brand-accent">HUB</span></span></a>
+    <a class="back" href="index.html">← Trang chủ</a>
+  </nav>
+
+  <p class="eyebrow">AN TOÀN CỘNG ĐỒNG</p>
+  <h1>Tố cáo<br><em>vi phạm.</em></h1>
+  <p class="sub">Giúp cộng đồng Arcade Hub sạch đẹp. Mọi tố cáo đều được admin xem xét trước khi xử lý.</p>
+
+  <div id="formBox" class="card">
+    <div class="warning-box">
+      ⚠️ <strong>Lưu ý:</strong> Tố cáo sai sự thật có thể khiến tài khoản của bạn bị xử lý. Hãy chắc chắn bạn có bằng chứng.
+    </div>
+
+    <form id="reportForm">
+      <label>Người bị tố cáo <span class="req">*</span></label>
+      <input id="reportedName" type="text" placeholder="Nhập tên người chơi" autocomplete="off" required>
+
+      <label>Lý do <span class="req">*</span></label>
+      <select id="reason" required>
+        <option value="">-- Chọn lý do --</option>
+        <option value="spam">Spam / Quảng cáo</option>
+        <option value="cheat">Gian lận / Hack</option>
+        <option value="toxic">Chửi thề / Xúc phạm</option>
+        <option value="harassment">Quấy rối</option>
+        <option value="inappropriate">Nội dung không phù hợp</option>
+        <option value="other">Lý do khác</option>
+      </select>
+
+      <label>Mô tả chi tiết <span class="req">*</span></label>
+      <textarea id="description" minlength="10" maxlength="500" placeholder="Mô tả rõ hành vi vi phạm (tối thiểu 10 ký tự)..." required></textarea>
+      <p class="hint"><span id="descCount">0</span>/500 ký tự</p>
+
+      <p class="hint" style="margin:14px 0 6px;">Hãy ghi rõ người chơi vi phạm ở trò chơi nào và vào lúc nào nếu bạn nhớ.</p>
+      <label>Trò chơi xảy ra vi phạm — không bắt buộc</label>
+      <input id="gameName" type="text" placeholder="Ví dụ: Snake Classic" maxlength="100">
+
+      <label>Thời gian vi phạm — không bắt buộc</label>
+      <input id="violationTime" type="datetime-local">
+
+      <label>Bằng chứng (link ảnh/video) — không bắt buộc</label>
+      <input id="evidence" type="text" placeholder="https://..." maxlength="300">
+
+      <button type="submit" id="submitBtn">Gửi tố cáo</button>
+    </form>
+  </div>
+
+  <div id="successBox" class="success-box">
+    ✅ <strong>Đã gửi tố cáo thành công!</strong>
+    <p style="margin:10px 0 0;">Admin sẽ xem xét và xử lý trong thời gian sớm nhất.</p>
+    <a href="index.html" style="display:inline-block;margin-top:16px;color:var(--orange);font-weight:700;">← Về trang chủ</a>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const API_BASE = location.protocol === 'file:' ? 'http://localhost:3000' : '';
+const token = localStorage.getItem('arcadeToken');
+if (!token) { alert('Vui lòng đăng nhập để tố cáo.'); location.href = 'index.html'; }
+
+function showToast(msg) {
+  const t = document.querySelector('#toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(window._tt);
+  window._tt = setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+// Load danh sách user
+async function loadUsers() {
+  try {
+    const r = await fetch(`${API_BASE}/api/users/list`, { headers: { Authorization: `Bearer ${token}` } });
+    const d = await r.json();
+    if (r.status === 403 && d.locked) {
+      localStorage.setItem('arcadeUser', JSON.stringify({ ...(JSON.parse(localStorage.getItem('arcadeUser') || 'null') || {}), locked: true, lockReason: d.lockReason }));
+      location.href = 'appeal.html';
+      return;
+    }
+    window.reportUsers = d.users;
+  } catch (e) { showToast('Không tải được danh sách user.'); }
+}
+
+// Đếm ký tự
+document.querySelector('#description').addEventListener('input', e => {
+  document.querySelector('#descCount').textContent = e.target.value.length;
+});
+
+// Submit
+document.querySelector('#reportForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = document.querySelector('#submitBtn');
+  btn.disabled = true; btn.textContent = 'Đang gửi...';
+  try {
+    const reportedName = document.querySelector('#reportedName').value.trim();
+    const reportedUser = (window.reportUsers || []).find(user => user.name.toLowerCase() === reportedName.toLowerCase());
+    if (!reportedUser) throw new Error('Không tìm thấy người chơi này. Hãy nhập đúng tên trong danh sách.');
+    const r = await fetch(`${API_BASE}/api/report`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({
+        reportedId: reportedUser.id,
+        reason: document.querySelector('#reason').value,
+        description: document.querySelector('#description').value,
+        gameName: document.querySelector('#gameName').value,
+        violationTime: document.querySelector('#violationTime').value,
+        evidence: document.querySelector('#evidence').value
+      })
+    });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.message);
+    document.querySelector('#formBox').classList.add('hidden');
+    document.querySelector('#successBox').classList.add('show');
+  } catch (err) {
+    showToast(err.message || 'Lỗi gửi tố cáo.');
+    btn.disabled = false; btn.textContent = 'Gửi tố cáo';
+  }
+});
+
+loadUsers();
+</script>
+</body>
+</html>
