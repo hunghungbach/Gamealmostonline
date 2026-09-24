@@ -89,6 +89,14 @@ app.use((request, response, next) => {
 app.use(express.json({ limit: '20kb' }));
 app.use(express.static(root));
 
+app.get('/api/health', (request, response) => {
+  response.json({
+    ok: true,
+    database: Boolean(dbPool),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
 const smtpStatus = getSmtpStatus();
 const mailer = smtpStatus.enabled ? nodemailer.createTransport({
   host: smtpStatus.host,
