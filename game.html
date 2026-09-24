@@ -121,13 +121,15 @@
     function saveLeaderboardScore(finalScore, gameTitle) {
       if (playTimeRecorded) return;
       playTimeRecorded = true;
-      const userRaw = localStorage.getItem('arcadeUser');
-      let player = 'Khách';
-      try { if (userRaw) player = JSON.parse(userRaw).name || 'Khách'; } catch (e) {}
-      const scores = JSON.parse(localStorage.getItem('arcadeLeaderboard') || '[]');
       const durationSeconds = Math.max(1, Math.round((Date.now() - playStartedAt) / 1000));
-      scores.push({ name: player, game: gameTitle, score: finalScore, durationSeconds, date: Date.now() });
-      localStorage.setItem('arcadeLeaderboard', JSON.stringify(scores.slice(-100)));
+      const token = localStorage.getItem('arcadeToken');
+      if (token) {
+        fetch('/api/leaderboard', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ game: gameTitle, durationSeconds })
+        }).catch(() => {});
+      }
     }
 
     /* ============ GAME NGOÀI — nhúng game được cho phép ============ */

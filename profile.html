@@ -272,12 +272,16 @@ function renderUser(user) {
   document.querySelector('#newName').value = name;
 }
 
-function renderScores() {
-  const scores = JSON.parse(localStorage.getItem('arcadeLeaderboard') || '[]');
-  const mine = scores.filter(s => s.name === localUser.name).slice(0, 10);
+async function renderScores() {
+  let mine = [];
+  try {
+    const r = await fetch(`${API_BASE}/api/leaderboard`);
+    const scores = r.ok ? (await r.json()).scores || [] : [];
+    mine = scores.filter(s => s.name === localUser.name).slice(0, 10);
+  } catch (error) {}
   const box = document.querySelector('#myScores');
   box.innerHTML = mine.length
-    ? mine.map(s => `<div class="best-score"><span>${s.game}</span><strong>${s.score} điểm</strong></div>`).join('')
+    ? mine.map(s => `<div class="best-score"><span>${s.game}</span><strong>${s.durationSeconds} giây</strong></div>`).join('')
     : '<p class="subtle">Chưa có điểm nào. Hãy chơi game để tích lũy điểm nhé!</p>';
 }
 

@@ -108,7 +108,9 @@ const mailer = smtpStatus.enabled ? nodemailer.createTransport({
   auth: { user: smtpStatus.user, pass: String(process.env.SMTP_PASS || '').replace(/\s+/g, '') }
 }) : null;
 
-if (!smtpStatus.enabled) {
+if (brevoApiKey) {
+  console.log('[mail] Brevo API ready. Email OTP sẽ được gửi qua HTTPS.');
+} else if (!smtpStatus.enabled) {
   console.warn('[mail] SMTP chưa sẵn sàng. Email OTP sẽ bị từ chối cho đến khi cấu hình Gmail thật + App Password.');
 } else {
   console.log('[mail] SMTP ready. Mã xác nhận sẽ được gửi qua email thật.');
@@ -138,6 +140,7 @@ function readReportsFromFile() {
 }
 let usersCache = readUsersFromFile();
 let reportsCache = readReportsFromFile();
+let leaderboardCache = [];
 let dbWriteQueue = Promise.resolve();
 
 function readUsers() { return usersCache; }
@@ -147,10 +150,11 @@ function persistDatabase() {
   if (!dbPool) return Promise.resolve();
   const users = JSON.stringify(usersCache);
   const reports = JSON.stringify(reportsCache);
+  const leaderboard = JSON.stringify(leaderboardCache);
   dbWriteQueue = dbWriteQueue
     .then(() => dbPool.query(
-      'UPDATE arcade_state SET users = $1::jsonb, reports = $2::jsonb, updated_at = NOW() WHERE id = 1',
-      [users, reports]
+      'UPDATE arcade_state SET users = $1::jsonb, reports = $2::jsonb, leaderboard = $3::jsonb, updated_at = NOW() WHERE id = 1',
+      [users, reports, leaderboard]
     ))
     .catch(error => console.error('[postgres] Unable to persist data:', error.message));
   return dbWriteQueue;
@@ -175,18 +179,21 @@ async function initializeDatabase() {
       id SMALLINT PRIMARY KEY CHECK (id = 1),
       users JSONB NOT NULL,
       reports JSONB NOT NULL,
+      leaderboard JSONB NOT NULL DEFAULT '[]'::jsonb,
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
-  const result = await dbPool.query('SELECT users, reports FROM arcade_state WHERE id = 1');
+  await dbPool.query("ALTER TABLE arcade_state ADD COLUMN IF NOT EXISTS leaderboard JSONB NOT NULL DEFAULT '[]'::jsonb");
+  const result = await dbPool.query('SELECT users, reports, leaderboard FROM arcade_state WHERE id = 1');
   if (!result.rowCount) {
     await dbPool.query(
-      'INSERT INTO arcade_state (id, users, reports) VALUES (1, $1::jsonb, $2::jsonb)',
-      [JSON.stringify(usersCache), JSON.stringify(reportsCache)]
+      'INSERT INTO arcade_state (id, users, reports, leaderboard) VALUES (1, $1::jsonb, $2::jsonb, $3::jsonb)',
+      [JSON.stringify(usersCache), JSON.stringify(reportsCache), JSON.stringify([])]
     );
   } else {
     usersCache = result.rows[0].users || [];
     reportsCache = result.rows[0].reports || { reports: [], appeals: [], notifications: [] };
+    leaderboardCache = result.rows[0].leaderboard || [];
   }
   console.log('[postgres] Connected. Arcade data is stored in PostgreSQL.');
   return true;
@@ -351,6 +358,26 @@ function validateCredentials(name, email, password) {
   if (name !== undefined && (name.length < 2 || name.length > 30)) return 'Biệt danh cần từ 2 đến 30 ký tự.';
   return null;
 }
+
+app.get('/api/leaderboard', (request, response) => {
+  response.json({ scores: leaderboardScores() });
+});
+
+app.post('/api/leaderboard', requireActive, (request, response) => {
+  const durationSeconds = Math.max(1, Math.round(Number(request.body.durationSeconds) || 0));
+  const game = String(request.body.game || 'Arcade game').slice(0, 100);
+  leaderboardCache.push({
+    userId: request.user.id,
+    name: request.user.name,
+    game,
+    durationSeconds,
+    date: Date.now()
+  });
+  leaderboardCache = leaderboardCache.slice(-1000);
+  const save = dbPool ? persistDatabase() : Promise.resolve();
+  save.then(() => response.json({ scores: leaderboardScores() }))
+    .catch(error => response.status(500).json({ message: error.message }));
+});
 
 /* ===================== AUTH ===================== */
 app.post('/api/auth/register', async (request, response) => {
@@ -883,4 +910,15 @@ if (require.main === module) {
       console.error('[startup] Database initialization failed:', error.message);
       process.exit(1);
     });
+}
+
+function leaderboardScores() {
+  const totals = leaderboardCache.reduce((players, entry) => {
+    const current = players.get(entry.userId) || { name: entry.name, durationSeconds: 0, game: entry.game };
+    current.durationSeconds += Number(entry.durationSeconds) || 0;
+    current.game = entry.game;
+    players.set(entry.userId, current);
+    return players;
+  }, new Map());
+  return [...totals.values()].sort((a, b) => b.durationSeconds - a.durationSeconds).slice(0, 5);
 }

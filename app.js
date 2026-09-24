@@ -212,18 +212,15 @@ function showAllGamesView(category = '') {
   document.querySelector('#games').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-function renderLeaderboard() {
+async function renderLeaderboard() {
   const list = document.querySelector('#leaderboardList');
-  const totals = JSON.parse(localStorage.getItem('arcadeLeaderboard') || '[]')
-    .filter(entry => Number(entry.durationSeconds) > 0)
-    .reduce((players, entry) => {
-      const current = players.get(entry.name) || { name: entry.name, durationSeconds: 0, game: entry.game };
-      current.durationSeconds += Number(entry.durationSeconds);
-      current.game = entry.game;
-      players.set(entry.name, current);
-      return players;
-    }, new Map());
-  const scores = [...totals.values()].sort((a, b) => b.durationSeconds - a.durationSeconds).slice(0, 5);
+  let scores = [];
+  try {
+    const response = await fetch(`${API_BASE}/api/leaderboard`);
+    if (response.ok) scores = (await response.json()).scores || [];
+  } catch (error) {
+    // Keep the leaderboard empty if the API is temporarily unavailable.
+  }
   const rankTitles = [
     'King of Game',
     'Người sống tình cảm',
