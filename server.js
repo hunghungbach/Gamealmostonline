@@ -186,6 +186,39 @@ async function initializeDatabase() {
   return true;
 }
 
+async function initializeAdminAccount() {
+  const email = normalizeEmail(process.env.ADMIN_EMAIL);
+  const password = String(process.env.ADMIN_PASSWORD || '');
+  if (!email || password.length < 8) return false;
+
+  const users = readUsers();
+  let admin = users.find(user => user.email === email);
+  if (!admin) {
+    admin = {
+      id: crypto.randomUUID(),
+      name: String(process.env.ADMIN_NAME || 'Administrator').trim() || 'Administrator',
+      email,
+      passwordHash: await hashPassword(password),
+      role: 'admin',
+      locked: false,
+      emailVerified: true,
+      createdAt: new Date().toISOString(),
+      lastLoginAt: null,
+      loginCount: 0
+    };
+    writeUsers([...users, admin]);
+    console.log(`[admin] Created production admin account: ${email}`);
+    return true;
+  }
+
+  if (admin.role !== 'admin') {
+    admin.role = 'admin';
+    writeUsers(users);
+    console.log(`[admin] Promoted production account to admin: ${email}`);
+  }
+  return false;
+}
+
 function pushNotification(userId, type, title, body) {
   const data = readReports();
   data.notifications.push({
@@ -812,6 +845,7 @@ module.exports = {
 
 if (require.main === module) {
   initializeDatabase()
+    .then(() => initializeAdminAccount())
     .then(() => app.listen(port, () => console.log(`Arcade Hub: ${process.env.APP_URL || `http://localhost:${port}`}`)))
     .catch(error => {
       console.error('[startup] Database initialization failed:', error.message);

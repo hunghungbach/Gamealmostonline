@@ -25,3 +25,9 @@ services:
         sync: false
       - key: MAIL_FROM
         sync: false
+      - key: ADMIN_NAME
+        value: Administrator
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
