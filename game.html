@@ -127,8 +127,11 @@
         fetch('/api/leaderboard', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ game: gameTitle, durationSeconds })
-        }).catch(() => {});
+          body: JSON.stringify({ game: gameTitle, durationSeconds }),
+          keepalive: true
+        }).then(response => {
+          if (!response.ok) console.error('[leaderboard] Save failed:', response.status);
+        }).catch(error => console.error('[leaderboard] Save failed:', error));
       }
     }
 

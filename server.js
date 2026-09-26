@@ -184,6 +184,15 @@ async function initializeDatabase() {
     )
   `);
   await dbPool.query("ALTER TABLE arcade_state ADD COLUMN IF NOT EXISTS leaderboard JSONB NOT NULL DEFAULT '[]'::jsonb");
+  await dbPool.query(`
+    CREATE TABLE IF NOT EXISTS arcade_leaderboard (
+      user_id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      game TEXT NOT NULL,
+      duration_seconds BIGINT NOT NULL DEFAULT 0 CHECK (duration_seconds >= 0),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
   const result = await dbPool.query('SELECT users, reports, leaderboard FROM arcade_state WHERE id = 1');
   if (!result.rowCount) {
     await dbPool.query(
@@ -194,6 +203,26 @@ async function initializeDatabase() {
     usersCache = result.rows[0].users || [];
     reportsCache = result.rows[0].reports || { reports: [], appeals: [], notifications: [] };
     leaderboardCache = result.rows[0].leaderboard || [];
+  }
+  const legacyTotals = leaderboardCache.reduce((totals, entry) => {
+    if (!entry.userId) return totals;
+    const current = totals.get(entry.userId) || { userId: entry.userId, name: entry.name, game: entry.game, durationSeconds: 0 };
+    current.durationSeconds += Number(entry.durationSeconds) || 0;
+    current.name = entry.name || current.name;
+    current.game = entry.game || current.game;
+    totals.set(entry.userId, current);
+    return totals;
+  }, new Map());
+  for (const entry of legacyTotals.values()) {
+    await dbPool.query(`
+      INSERT INTO arcade_leaderboard (user_id, name, game, duration_seconds)
+      VALUES ($1, $2, $3, $4)
+      ON CONFLICT (user_id) DO UPDATE SET
+        name = EXCLUDED.name,
+        game = EXCLUDED.game,
+        duration_seconds = GREATEST(arcade_leaderboard.duration_seconds, EXCLUDED.duration_seconds),
+        updated_at = NOW()
+    `, [entry.userId, entry.name, entry.game || 'Arcade game', entry.durationSeconds]);
   }
   console.log('[postgres] Connected. Arcade data is stored in PostgreSQL.');
   return true;
@@ -359,24 +388,39 @@ function validateCredentials(name, email, password) {
   return null;
 }
 
-app.get('/api/leaderboard', (request, response) => {
-  response.json({ scores: leaderboardScores() });
+app.get('/api/leaderboard', async (request, response) => {
+  try {
+    const scores = dbPool ? await getLeaderboardScores() : leaderboardScores();
+    response.json({ scores });
+  } catch (error) {
+    console.error('[leaderboard] Unable to load:', error.message);
+    response.status(500).json({ message: 'Không tải được bảng xếp hạng.' });
+  }
 });
 
-app.post('/api/leaderboard', requireActive, (request, response) => {
+app.post('/api/leaderboard', requireActive, async (request, response) => {
   const durationSeconds = Math.max(1, Math.round(Number(request.body.durationSeconds) || 0));
   const game = String(request.body.game || 'Arcade game').slice(0, 100);
-  leaderboardCache.push({
-    userId: request.user.id,
-    name: request.user.name,
-    game,
-    durationSeconds,
-    date: Date.now()
-  });
-  leaderboardCache = leaderboardCache.slice(-1000);
-  const save = dbPool ? persistDatabase() : Promise.resolve();
-  save.then(() => response.json({ scores: leaderboardScores() }))
-    .catch(error => response.status(500).json({ message: error.message }));
+  try {
+    if (dbPool) {
+      await dbPool.query(`
+        INSERT INTO arcade_leaderboard (user_id, name, game, duration_seconds)
+        VALUES ($1, $2, $3, $4)
+        ON CONFLICT (user_id) DO UPDATE SET
+          name = EXCLUDED.name,
+          game = EXCLUDED.game,
+          duration_seconds = arcade_leaderboard.duration_seconds + EXCLUDED.duration_seconds,
+          updated_at = NOW()
+      `, [request.user.id, request.user.name, game, durationSeconds]);
+      return response.json({ scores: await getLeaderboardScores() });
+    }
+
+    leaderboardCache.push({ userId: request.user.id, name: request.user.name, game, durationSeconds, date: Date.now() });
+    response.json({ scores: leaderboardScores() });
+  } catch (error) {
+    console.error('[leaderboard] Unable to save:', error.message);
+    response.status(500).json({ message: 'Không lưu được thời gian chơi.' });
+  }
 });
 
 /* ===================== AUTH ===================== */
@@ -910,6 +954,17 @@ if (require.main === module) {
       console.error('[startup] Database initialization failed:', error.message);
       process.exit(1);
     });
+}
+
+async function getLeaderboardScores() {
+  const result = await dbPool.query(`
+    SELECT name, game, duration_seconds AS "durationSeconds"
+    FROM arcade_leaderboard
+    WHERE duration_seconds > 0
+    ORDER BY duration_seconds DESC, updated_at ASC
+    LIMIT 5
+  `);
+  return result.rows;
 }
 
 function leaderboardScores() {
